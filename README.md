@@ -291,7 +291,7 @@ No Redis/broker dependency for the demo. APScheduler runs in-process, ships in o
 | JSON file store | PostgreSQL with SQLAlchemy async |
 | Single policy at a time | Multi-tenant policy versioning with policy_id FK |
 | Confidence scoring relies on LLM self-report | Add a secondary validation pass using a smaller model |
-| No auth on API | JWT middleware (same pattern as NutriAI) |
+| No auth on API | JWT middleware |
 | Email is fire-and-forget | Delivery receipts + retry queue in the DB |
 | Rule priority is static | Dynamic priority based on section ordering + manual override |
 
