@@ -1,0 +1,2043 @@
+{
+  "rules": [
+    {
+      "rule_id": "AP-INV-001",
+      "category": "INVOICE_VALIDATION",
+      "source_clause": "Section 1.1",
+      "section_id": "1.1",
+      "sub_clause": null,
+      "description": "Flag invoice as Incomplete and route to AP Clerk for manual review when any mandatory field is missing",
+      "condition": {
+        "operator": "OR",
+        "field": null,
+        "op": null,
+        "value": null,
+        "operands": [
+          {
+            "operator": "LEAF",
+            "field": "invoice_number",
+            "op": "is_null",
+            "value": null,
+            "operands": [],
+            "description": "Invoice Number missing"
+          },
+          {
+            "operator": "LEAF",
+            "field": "invoice_date",
+            "op": "is_null",
+            "value": null,
+            "operands": [],
+            "description": "Invoice Date missing"
+          },
+          {
+            "operator": "LEAF",
+            "field": "vendor_gstin",
+            "op": "is_null",
+            "value": null,
+            "operands": [],
+            "description": "Vendor GSTIN missing"
+          },
+          {
+            "operator": "LEAF",
+            "field": "po_status",
+            "op": "is_null",
+            "value": null,
+            "operands": [],
+            "description": "Purchase Order Number missing"
+          },
+          {
+            "operator": "LEAF",
+            "field": "grand_total",
+            "op": "is_null",
+            "value": null,
+            "operands": [],
+            "description": "Grand Total Amount missing"
+          }
+        ],
+        "description": "Any mandatory field missing"
+      },
+      "action_config": {
+        "action": "REQUEST_MANUAL_REVIEW",
+        "requires_justification": false,
+        "flag_code": "INCOMPLETE_FIELDS",
+        "flag_message": "Invoice missing mandatory fields.",
+        "notification": {
+          "type": "email",
+          "recipients": [
+            "ap_clerk"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_gstin",
+            "po_status",
+            "grand_total"
+          ]
+        },
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 0.9,
+      "low_confidence_reason": null,
+      "raw_clause_text": "1.1 Every invoice received must contain the following mandatory fields: Invoice Number, Invoice Date, Vendor GSTIN, Purchase Order Number, and Grand Total Amount. If any mandatory field is missing, the invoice shall be flagged as \"Incomplete\" and routed to the AP Clerk for manual review.",
+      "extracted_at": "2026-05-09T15:37:38.639643",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-INV-002",
+      "category": "INVOICE_VALIDATION",
+      "source_clause": "Section 1.2",
+      "section_id": "1.2",
+      "sub_clause": null,
+      "description": "Reject invoice when invoice date is later than processing date",
+      "condition": {
+        "operator": "LEAF",
+        "field": "invoice_date",
+        "op": ">",
+        "value": "processing_date",
+        "operands": [],
+        "description": "Invoice date is later than processing date"
+      },
+      "action_config": {
+        "action": "REJECT",
+        "requires_justification": false,
+        "flag_code": "FUTURE_DATED_INVOICE",
+        "flag_message": "Future-Dated Invoice Not Permitted.",
+        "notification": null,
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "1.2 If the invoice date is in the future (i.e., later than the current processing date), the invoice must be rejected with reason \"Future-Dated Invoice Not Permitted.\"",
+      "extracted_at": "2026-05-09T15:37:43.182511",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-INV-003",
+      "category": "INVOICE_VALIDATION",
+      "source_clause": "Section 1.3",
+      "section_id": "1.3",
+      "sub_clause": null,
+      "description": "Require AP Manager approval for handwritten invoices over INR 50,000",
+      "condition": {
+        "operator": "AND",
+        "field": null,
+        "op": null,
+        "value": null,
+        "operands": [
+          {
+            "operator": "LEAF",
+            "field": "is_handwritten",
+            "op": "==",
+            "value": true,
+            "operands": [],
+            "description": "Invoice is handwritten"
+          },
+          {
+            "operator": "LEAF",
+            "field": "invoice_total",
+            "op": ">",
+            "value": 50000,
+            "operands": [],
+            "description": "Invoice total exceeds INR 50,000"
+          }
+        ],
+        "description": "Handwritten invoice with total > 50,000"
+      },
+      "action_config": {
+        "action": "ROUTE_TO_DEPT_HEAD",
+        "requires_justification": false,
+        "flag_code": "HANDWRITTEN_OVER_50K",
+        "flag_message": "Handwritten invoice exceeds INR 50,000; requires AP Manager approval.",
+        "notification": {
+          "type": "email",
+          "recipients": [
+            "dept_head"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_name",
+            "po_number",
+            "deviation_type",
+            "deviation_details",
+            "recommended_action"
+          ]
+        },
+        "next_action_if_unresolved_hours": 48,
+        "escalate_to": "ESCALATE_TO_FINANCE_CONTROLLER"
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "1.3 Handwritten invoices above INR 50,000 require additional approval from the AP Manager before booking.",
+      "extracted_at": "2026-05-09T15:37:47.941818",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-INV-004",
+      "category": "INVOICE_VALIDATION",
+      "source_clause": "Section 1.4",
+      "section_id": "1.4",
+      "sub_clause": null,
+      "description": "Flag and hold invoice as Potential Duplicate when same Invoice Number and Vendor GSTIN already exist",
+      "condition": {
+        "operator": "AND",
+        "field": null,
+        "op": null,
+        "value": null,
+        "operands": [
+          {
+            "operator": "LEAF",
+            "field": "invoice_number",
+            "op": "==",
+            "value": "existing_invoice_number",
+            "operands": [],
+            "description": "Invoice number matches an existing invoice"
+          },
+          {
+            "operator": "LEAF",
+            "field": "vendor_gstin",
+            "op": "==",
+            "value": "existing_vendor_gstin",
+            "operands": [],
+            "description": "Vendor GSTIN matches the same existing invoice"
+          }
+        ],
+        "description": "Duplicate invoice detected based on Invoice Number and Vendor GSTIN"
+      },
+      "action_config": {
+        "action": "HOLD",
+        "requires_justification": false,
+        "flag_code": "POTENTIAL_DUPLICATE",
+        "flag_message": "Potential duplicate invoice detected; held for review.",
+        "notification": {
+          "type": "email",
+          "recipients": [
+            "ap_clerk"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_name",
+            "po_number",
+            "deviation_type",
+            "deviation_details",
+            "recommended_action"
+          ]
+        },
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "1.4 Duplicate invoice detection: If an invoice with the same Invoice Number and Vendor GSTIN already exists in the system, the new invoice must be flagged as \"Potential Duplicate\" and held for review.",
+      "extracted_at": "2026-05-09T15:37:54.547579",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-TWM-001",
+      "category": "THREE_WAY_MATCH",
+      "source_clause": "Section 2.1",
+      "section_id": "2.1",
+      "sub_clause": null,
+      "description": "Reject invoice when PO reference is not an active PO",
+      "condition": {
+        "operator": "LEAF",
+        "field": "po_status",
+        "op": "!=",
+        "value": "active",
+        "operands": [],
+        "description": "PO number on invoice does not match any active PO"
+      },
+      "action_config": {
+        "action": "REJECT",
+        "requires_justification": false,
+        "flag_code": "INVALID_PO_REFERENCE",
+        "flag_message": "Invalid PO Reference.",
+        "notification": null,
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "2.1 Every invoice must reference a valid Purchase Order (PO). If the PO Number on the invoice does not match any active PO in the system, the invoice shall be rejected with reason \"Invalid PO Reference.\"",
+      "extracted_at": "2026-05-09T15:37:58.913888",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-TWM-002",
+      "category": "THREE_WAY_MATCH",
+      "source_clause": "Section 2.2",
+      "section_id": "2.2",
+      "sub_clause": null,
+      "description": "Flag invoice for review when Invoice Amount vs PO Amount requires verification",
+      "condition": {
+        "operator": "LEAF",
+        "field": "invoice_total",
+        "op": ">=",
+        "value": 0,
+        "operands": [],
+        "description": "Placeholder condition due to lack of specific rule details"
+      },
+      "action_config": {
+        "action": "FLAG",
+        "requires_justification": false,
+        "flag_code": "INVOICE_PO_AMOUNT_CHECK",
+        "flag_message": "Invoice amount vs PO amount requires manual verification.",
+        "notification": {
+          "type": "system",
+          "recipients": [
+            "ap_clerk"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_name",
+            "po_number",
+            "deviation_type",
+            "deviation_details",
+            "recommended_action"
+          ]
+        },
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 0.4,
+      "low_confidence_reason": "Clause only contains a heading without explicit rule details",
+      "raw_clause_text": "2.2 Invoice Amount vs PO Amount:",
+      "extracted_at": "2026-05-09T15:38:03.864602",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-TWM-003",
+      "category": "THREE_WAY_MATCH",
+      "source_clause": "Section 2.2(a)",
+      "section_id": "2.2",
+      "sub_clause": "a",
+      "description": "Auto-approve invoice when total is within +/-1% of PO amount",
+      "condition": {
+        "operator": "AND",
+        "field": null,
+        "op": null,
+        "value": null,
+        "operands": [
+          {
+            "operator": "LEAF",
+            "field": "deviation_pct",
+            "op": ">=",
+            "value": -1,
+            "operands": [],
+            "description": "Invoice total is not less than PO amount by more than 1%"
+          },
+          {
+            "operator": "LEAF",
+            "field": "deviation_pct",
+            "op": "<=",
+            "value": 1,
+            "operands": [],
+            "description": "Invoice total does not exceed PO amount by more than 1%"
+          }
+        ],
+        "description": "Invoice total within +/-1% of PO amount"
+      },
+      "action_config": {
+        "action": "AUTO_APPROVE",
+        "requires_justification": false,
+        "flag_code": null,
+        "flag_message": null,
+        "notification": null,
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "a. If the Invoice Total Amount is within +/- 1% of the PO Amount (tolerance), the invoice is auto-approved for booking.",
+      "extracted_at": "2026-05-09T15:38:09.302406",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-TWM-004",
+      "category": "THREE_WAY_MATCH",
+      "source_clause": "Section 2.2(b)",
+      "section_id": "2.2",
+      "sub_clause": "b",
+      "description": "Route invoice to Department Head when amount exceeds PO by >1% and <10%",
+      "condition": {
+        "operator": "AND",
+        "field": null,
+        "op": null,
+        "value": null,
+        "operands": [
+          {
+            "operator": "LEAF",
+            "field": "deviation_pct",
+            "op": ">",
+            "value": 1,
+            "operands": [],
+            "description": "Invoice total exceeds PO amount by more than 1%"
+          },
+          {
+            "operator": "LEAF",
+            "field": "deviation_pct",
+            "op": "<",
+            "value": 10,
+            "operands": [],
+            "description": "Invoice total exceeds PO amount by less than 10%"
+          }
+        ],
+        "description": "Invoice total exceeds PO amount by >1% and <10%"
+      },
+      "action_config": {
+        "action": "ROUTE_TO_DEPT_HEAD",
+        "requires_justification": false,
+        "flag_code": "AMOUNT_EXCEEDS_PO_1_10PCT",
+        "flag_message": "Invoice amount exceeds PO by >1% and <10%; routed to Department Head for approval.",
+        "notification": {
+          "type": "email",
+          "recipients": [
+            "dept_head"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_name",
+            "po_number",
+            "deviation_type",
+            "deviation_details",
+            "recommended_action"
+          ]
+        },
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "b. If the Invoice Total Amount exceeds the PO Amount by more than 1% but less than 10%, the invoice is routed to the Department Head for approval.",
+      "extracted_at": "2026-05-09T15:38:13.488905",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-TWM-005",
+      "category": "THREE_WAY_MATCH",
+      "source_clause": "Section 2.2(c)",
+      "section_id": "2.2",
+      "sub_clause": "c",
+      "description": "Escalate invoice to Finance Controller when amount exceeds PO by 10% or more",
+      "condition": {
+        "operator": "LEAF",
+        "field": "deviation_pct",
+        "op": ">=",
+        "value": 10,
+        "operands": [],
+        "description": "Invoice total exceeds PO amount by 10% or more"
+      },
+      "action_config": {
+        "action": "ESCALATE_TO_FINANCE_CONTROLLER",
+        "requires_justification": true,
+        "flag_code": "AMOUNT_EXCEEDS_PO_10PCT",
+        "flag_message": "Invoice amount exceeds PO by 10% or more. Escalated to Finance Controller.",
+        "notification": {
+          "type": "email",
+          "recipients": [
+            "finance_controller",
+            "internal_audit"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_name",
+            "po_number",
+            "deviation_type",
+            "deviation_details",
+            "recommended_action"
+          ]
+        },
+        "next_action_if_unresolved_hours": 48,
+        "escalate_to": "ESCALATE_TO_CFO"
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "c. If the Invoice Total Amount exceeds the PO Amount by 10% or more, the invoice is escalated to the Finance Controller with a mandatory justification note.",
+      "extracted_at": "2026-05-09T15:38:17.242574",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-TWM-006",
+      "category": "THREE_WAY_MATCH",
+      "source_clause": "Section 2.2(d)",
+      "section_id": "2.2",
+      "sub_clause": "d",
+      "description": "Flag under-invoiced invoices when amount is more than 5% below PO",
+      "condition": {
+        "operator": "LEAF",
+        "field": "deviation_pct",
+        "op": "<",
+        "value": -5,
+        "operands": [],
+        "description": "Invoice total is less than PO amount by more than 5%"
+      },
+      "action_config": {
+        "action": "FLAG",
+        "requires_justification": false,
+        "flag_code": "UNDER_INVOICED_VERIFY_PARTIAL_DELIVERY",
+        "flag_message": "Under-Invoiced \u2014 Verify Partial Delivery",
+        "notification": null,
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "d. If the Invoice Total Amount is less than the PO Amount by more than 5%, a flag \"Under-Invoiced \u2014 Verify Partial Delivery\" must be raised.",
+      "extracted_at": "2026-05-09T15:38:20.990157",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-TWM-007",
+      "category": "THREE_WAY_MATCH",
+      "source_clause": "Section 2.3",
+      "section_id": "2.3",
+      "sub_clause": null,
+      "description": "Require line-item quantities to be present for Invoice, PO, and GRN before processing",
+      "condition": {
+        "operator": "AND",
+        "field": null,
+        "op": null,
+        "value": null,
+        "operands": [
+          {
+            "operator": "LEAF",
+            "field": "invoice_qty_total",
+            "op": "is_not_null",
+            "value": null,
+            "operands": [],
+            "description": "Invoice quantity total is present"
+          },
+          {
+            "operator": "LEAF",
+            "field": "po_qty_total",
+            "op": "is_not_null",
+            "value": null,
+            "operands": [],
+            "description": "PO quantity total is present"
+          },
+          {
+            "operator": "LEAF",
+            "field": "grn_qty_total",
+            "op": "is_not_null",
+            "value": null,
+            "operands": [],
+            "description": "GRN quantity total is present"
+          }
+        ],
+        "description": "All line-item quantity fields must be present"
+      },
+      "action_config": {
+        "action": "HOLD",
+        "requires_justification": false,
+        "flag_code": "LINE_ITEM_MATCH_REQUIRED",
+        "flag_message": "Invoice requires line-item matching verification before further processing.",
+        "notification": {
+          "type": "email",
+          "recipients": [
+            "ap_clerk"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_name",
+            "po_number",
+            "deviation_type",
+            "deviation_details",
+            "recommended_action"
+          ]
+        },
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 0.5,
+      "low_confidence_reason": "Clause provides only a heading without specific matching criteria; rule inferred generically.",
+      "raw_clause_text": "2.3 Line-Item Matching:",
+      "extracted_at": "2026-05-09T15:38:25.958869",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-TWM-008",
+      "category": "THREE_WAY_MATCH",
+      "source_clause": "Section 2.3(a)",
+      "section_id": "2.3",
+      "sub_clause": "a",
+      "description": "Hold invoice when line item quantity does not match PO quantity",
+      "condition": {
+        "operator": "LEAF",
+        "field": "invoice_qty_total",
+        "op": "!=",
+        "value": "po_qty_total",
+        "operands": [],
+        "description": "Invoice line item quantity differs from PO line item quantity"
+      },
+      "action_config": {
+        "action": "HOLD",
+        "requires_justification": false,
+        "flag_code": "QTY_MISMATCH",
+        "flag_message": "Invoice quantity does not match PO quantity; invoice placed on hold for review.",
+        "notification": {
+          "type": "email",
+          "recipients": [
+            "ap_clerk",
+            "dept_head"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_name",
+            "po_number",
+            "deviation_type",
+            "deviation_details",
+            "recommended_action"
+          ]
+        },
+        "next_action_if_unresolved_hours": 48,
+        "escalate_to": "ESCALATE_TO_FINANCE_CONTROLLER"
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "a. Each invoice line item quantity must be compared against the corresponding PO line item quantity.",
+      "extracted_at": "2026-05-09T15:38:29.929779",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-TWM-009",
+      "category": "THREE_WAY_MATCH",
+      "source_clause": "Section 2.3(b)",
+      "section_id": "2.3",
+      "sub_clause": "b",
+      "description": "Hold invoice when line item quantity exceeds PO quantity",
+      "condition": {
+        "operator": "LEAF",
+        "field": "invoice_qty_total",
+        "op": ">",
+        "value": "po_qty_total",
+        "operands": [],
+        "description": "Invoice quantity exceeds PO quantity"
+      },
+      "action_config": {
+        "action": "HOLD",
+        "requires_justification": false,
+        "flag_code": "QTY_EXCEEDS_PO",
+        "flag_message": "Quantity exceeds PO.",
+        "notification": null,
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [
+        "AP-GRN-004"
+      ],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "b. If Invoice Quantity > PO Quantity for any line item, the invoice is held with flag \"Quantity Exceeds PO.\"",
+      "extracted_at": "2026-05-09T15:38:34.245732",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-TWM-010",
+      "category": "THREE_WAY_MATCH",
+      "source_clause": "Section 2.3(c)",
+      "section_id": "2.3",
+      "sub_clause": "c",
+      "description": "Flag and route invoice line item for verification when unit rate differs from PO unit rate by more than 2%",
+      "condition": {
+        "operator": "LEAF",
+        "field": "rate_deviation_pct",
+        "op": ">",
+        "value": 2,
+        "operands": [],
+        "description": "Invoice unit rate differs from PO unit rate by >2%"
+      },
+      "action_config": {
+        "action": "REQUEST_MANUAL_REVIEW",
+        "requires_justification": false,
+        "flag_code": "RATE_MISMATCH",
+        "flag_message": "Invoice unit rate differs from PO unit rate by >2% (Rate Mismatch).",
+        "notification": {
+          "type": "email",
+          "recipients": [
+            "procurement"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_name",
+            "po_number",
+            "deviation_type",
+            "deviation_details",
+            "recommended_action"
+          ]
+        },
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "c. If Invoice Unit Rate differs from the PO Unit Rate by more than 2%, the line item is flagged \"Rate Mismatch\" and routed to Procurement for verification.",
+      "extracted_at": "2026-05-09T15:38:38.407045",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-GRN-001",
+      "category": "GRN_MATCHING",
+      "source_clause": "Section 3.1",
+      "section_id": "3.1",
+      "sub_clause": null,
+      "description": "Hold invoice awaiting GRN when no GRN exists for the referenced PO",
+      "condition": {
+        "operator": "LEAF",
+        "field": "grn_qty_total",
+        "op": "is_null",
+        "value": null,
+        "operands": [],
+        "description": "No GRN quantity recorded for the PO, indicating missing GRN"
+      },
+      "action_config": {
+        "action": "HOLD",
+        "requires_justification": false,
+        "flag_code": "GRN_MISSING",
+        "flag_message": "No GRN found for PO; invoice held awaiting GRN.",
+        "notification": null,
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "3.1 For goods-based POs, a valid GRN must exist before the invoice can be booked. If no GRN is found for the referenced PO, the invoice is held with status \"Awaiting GRN.\"",
+      "extracted_at": "2026-05-09T15:38:42.566754",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-GRN-002",
+      "category": "GRN_MATCHING",
+      "source_clause": "Section 3.2",
+      "section_id": "3.2",
+      "sub_clause": null,
+      "description": "Ensure invoice quantity matches GRN quantity",
+      "condition": {
+        "operator": "LEAF",
+        "field": "invoice_qty_total",
+        "op": "!=",
+        "value": "grn_qty_total",
+        "operands": [],
+        "description": "Invoice quantity differs from GRN quantity"
+      },
+      "action_config": {
+        "action": "FLAG",
+        "requires_justification": false,
+        "flag_code": "QTY_MISMATCH",
+        "flag_message": "Invoice quantity does not match GRN quantity",
+        "notification": {
+          "type": "email",
+          "recipients": [
+            "finance_controller",
+            "ap_clerk"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_name",
+            "po_number",
+            "deviation_type",
+            "deviation_details",
+            "recommended_action"
+          ]
+        },
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 0.6,
+      "low_confidence_reason": "Clause provides only a heading without explicit thresholds or prescribed actions",
+      "raw_clause_text": "3.2 Invoice Quantity vs GRN Quantity:",
+      "extracted_at": "2026-05-09T15:38:46.994180",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-GRN-003",
+      "category": "GRN_MATCHING",
+      "source_clause": "Section 3.2(a)",
+      "section_id": "3.2",
+      "sub_clause": "a",
+      "description": "Accept match when invoice quantity is less than or equal to GRN quantity",
+      "condition": {
+        "operator": "LEAF",
+        "field": "invoice_qty_total",
+        "op": "<=",
+        "value": "grn_qty_total",
+        "operands": [],
+        "description": "Invoice quantity is less than or equal to GRN quantity"
+      },
+      "action_config": {
+        "action": "AUTO_APPROVE",
+        "requires_justification": false,
+        "flag_code": null,
+        "flag_message": null,
+        "notification": null,
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "a. If Invoice Quantity <= GRN Quantity, the match is accepted.",
+      "extracted_at": "2026-05-09T15:38:52.585727",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-GRN-004",
+      "category": "GRN_MATCHING",
+      "source_clause": "Section 3.2(b)",
+      "section_id": "3.2",
+      "sub_clause": "b",
+      "description": "Reject invoice when invoice quantity exceeds GRN quantity",
+      "condition": {
+        "operator": "LEAF",
+        "field": "invoice_qty_total",
+        "op": ">",
+        "value": "grn_qty_total",
+        "operands": [],
+        "description": "Invoice quantity exceeds GRN quantity"
+      },
+      "action_config": {
+        "action": "REJECT",
+        "requires_justification": false,
+        "flag_code": "INVOICE_QTY_EXCEEDS_GRN",
+        "flag_message": "Invoice quantity exceeds received quantity.",
+        "notification": null,
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [
+        "Refer Section 2.3(b) for PO-level escalation"
+      ],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "b. If Invoice Quantity > GRN Quantity, the invoice is rejected with reason \"Invoice Qty Exceeds Received Qty. Refer Section 2.3(b) for PO-level escalation.\"",
+      "extracted_at": "2026-05-09T15:38:57.029629",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-GRN-005",
+      "category": "GRN_MATCHING",
+      "source_clause": "Section 3.3",
+      "section_id": "3.3",
+      "sub_clause": null,
+      "description": "Flag invoice when GRN date is after Invoice date",
+      "condition": {
+        "operator": "LEAF",
+        "field": "grn_date",
+        "op": ">",
+        "value": "invoice_date",
+        "operands": [],
+        "description": "GRN date is later than Invoice date"
+      },
+      "action_config": {
+        "action": "FLAG",
+        "requires_justification": false,
+        "flag_code": "GRN_POST_DATED",
+        "flag_message": "GRN Post-Dated \u2014 Verify Receipt Timeline.",
+        "notification": null,
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "3.3 GRN Date must be on or before the Invoice Date. If the GRN Date is after the Invoice Date, the invoice is flagged with \"GRN Post-Dated \u2014 Verify Receipt Timeline.\"",
+      "extracted_at": "2026-05-09T15:39:01.235995",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-TAX-001",
+      "category": "TAX_COMPLIANCE",
+      "source_clause": "Section 4.1",
+      "section_id": "4.1",
+      "sub_clause": null,
+      "description": "Reject invoice when vendor GSTIN does not match master record",
+      "condition": {
+        "operator": "LEAF",
+        "field": "vendor_gstin",
+        "op": "!=",
+        "value": "gstin_in_master",
+        "operands": [],
+        "description": "Vendor GSTIN on invoice differs from GSTIN in vendor master"
+      },
+      "action_config": {
+        "action": "REJECT",
+        "requires_justification": false,
+        "flag_code": "GSTIN_MISMATCH",
+        "flag_message": "GSTIN Mismatch \u2014 Update Vendor Master or Verify Invoice.",
+        "notification": null,
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "4.1 Vendor GSTIN Validation: The vendor's GSTIN on the invoice must match the GSTIN registered in the vendor master. If there is a mismatch, the invoice is rejected with reason \"GSTIN Mismatch \u2014 Update Vendor Master or Verify Invoice.\"",
+      "extracted_at": "2026-05-09T15:39:05.834409",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-TAX-002",
+      "category": "TAX_COMPLIANCE",
+      "source_clause": "Section 4.2",
+      "section_id": "4.2",
+      "sub_clause": null,
+      "description": "Apply compliance hold when PAN extracted from GSTIN does not match PAN on file",
+      "condition": {
+        "operator": "NOT",
+        "field": null,
+        "op": null,
+        "value": null,
+        "operands": [
+          {
+            "operator": "LEAF",
+            "field": "vendor_gstin",
+            "op": "contains",
+            "value": "vendor_pan",
+            "operands": [],
+            "description": "GSTIN contains PAN on file"
+          }
+        ],
+        "description": "PAN extracted from GSTIN does not match PAN on file"
+      },
+      "action_config": {
+        "action": "COMPLIANCE_HOLD",
+        "requires_justification": false,
+        "flag_code": "PAN_GSTIN_MISMATCH",
+        "flag_message": "PAN extracted from GSTIN does not match PAN on file. Compliance hold applied.",
+        "notification": {
+          "type": "email",
+          "recipients": [
+            "finance_controller",
+            "internal_audit"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_name",
+            "po_number",
+            "deviation_type",
+            "deviation_details",
+            "recommended_action"
+          ]
+        },
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 0.95,
+      "low_confidence_reason": null,
+      "raw_clause_text": "4.2 PAN-GSTIN Cross Check: The PAN embedded in the vendor's GSTIN (characters 3\u201312) must match the PAN on file. Failure triggers a compliance hold.",
+      "extracted_at": "2026-05-09T15:39:11.787828",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-TAX-003",
+      "category": "TAX_COMPLIANCE",
+      "source_clause": "Section 4.3",
+      "section_id": "4.3",
+      "sub_clause": null,
+      "description": "Verify presence of total tax amount for tax calculation compliance",
+      "condition": {
+        "operator": "LEAF",
+        "field": "total_tax",
+        "op": "is_not_null",
+        "value": null,
+        "operands": [],
+        "description": "Total tax amount must be present"
+      },
+      "action_config": {
+        "action": "FLAG",
+        "requires_justification": false,
+        "flag_code": "TAX_CALC_VERIFICATION",
+        "flag_message": "Total tax amount is missing or not calculated",
+        "notification": {
+          "type": "email",
+          "recipients": [
+            "finance_controller"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_name",
+            "po_number",
+            "total_tax"
+          ]
+        },
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 0.4,
+      "low_confidence_reason": "Clause provides only a heading without specific verification criteria",
+      "raw_clause_text": "4.3 Tax Calculation Verification:",
+      "extracted_at": "2026-05-09T15:39:19.262127",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-TAX-004",
+      "category": "TAX_COMPLIANCE",
+      "source_clause": "Section 4.3(a)",
+      "section_id": "4.3",
+      "sub_clause": "a",
+      "description": "Validate that sum of Total Taxable Amount and Total Tax matches Grand Total within INR 1 tolerance",
+      "condition": {
+        "operator": "AND",
+        "field": null,
+        "op": null,
+        "value": null,
+        "operands": [
+          {
+            "operator": "LEAF",
+            "field": "total_taxable_amount",
+            "op": "is_not_null",
+            "value": null,
+            "operands": [],
+            "description": "Total Taxable Amount must be present"
+          },
+          {
+            "operator": "LEAF",
+            "field": "total_tax",
+            "op": "is_not_null",
+            "value": null,
+            "operands": [],
+            "description": "Total Tax must be present"
+          },
+          {
+            "operator": "LEAF",
+            "field": "grand_total",
+            "op": "is_not_null",
+            "value": null,
+            "operands": [],
+            "description": "Grand Total must be present"
+          }
+        ],
+        "description": "All required tax fields are present"
+      },
+      "action_config": {
+        "action": "FLAG",
+        "requires_justification": false,
+        "flag_code": "TAX_TOTAL_MISMATCH",
+        "flag_message": "Sum of Total Taxable Amount and Total Tax does not match Grand Total within INR 1 tolerance.",
+        "notification": {
+          "type": "email",
+          "recipients": [
+            "finance_controller",
+            "internal_audit"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_name",
+            "po_number",
+            "deviation_type",
+            "deviation_details",
+            "recommended_action"
+          ]
+        },
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 0.6,
+      "low_confidence_reason": "Condition cannot express arithmetic tolerance with available field operators",
+      "raw_clause_text": "a. Total Taxable Amount + Total Tax Amount must equal the Grand Total (within INR 1 tolerance for rounding).",
+      "extracted_at": "2026-05-09T15:39:25.507443",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-TAX-005",
+      "category": "TAX_COMPLIANCE",
+      "source_clause": "Section 4.3(b)",
+      "section_id": "4.3",
+      "sub_clause": "b",
+      "description": "Reject invoice when intra-state supply lacks CGST/SGST or they are unequal",
+      "condition": {
+        "operator": "AND",
+        "field": null,
+        "op": null,
+        "value": null,
+        "operands": [
+          {
+            "operator": "LEAF",
+            "field": "supply_type",
+            "op": "==",
+            "value": "intra_state",
+            "operands": [],
+            "description": "Supply type is intra-state"
+          },
+          {
+            "operator": "OR",
+            "field": null,
+            "op": null,
+            "value": null,
+            "operands": [
+              {
+                "operator": "LEAF",
+                "field": "total_cgst",
+                "op": "is_null",
+                "value": null,
+                "operands": [],
+                "description": "CGST amount is missing"
+              },
+              {
+                "operator": "LEAF",
+                "field": "total_sgst",
+                "op": "is_null",
+                "value": null,
+                "operands": [],
+                "description": "SGST amount is missing"
+              },
+              {
+                "operator": "LEAF",
+                "field": "total_cgst",
+                "op": "!=",
+                "value": "total_sgst",
+                "operands": [],
+                "description": "CGST and SGST amounts are not equal"
+              }
+            ],
+            "description": "CGST/SGST missing or unequal"
+          }
+        ],
+        "description": "Intra-state supply with missing or mismatched CGST/SGST"
+      },
+      "action_config": {
+        "action": "REJECT",
+        "requires_justification": true,
+        "flag_code": "CGST_SGST_MISMATCH_OR_MISSING",
+        "flag_message": "For intra-state supply, CGST and SGST must both be present and equal.",
+        "notification": {
+          "type": "email",
+          "recipients": [
+            "finance_controller"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_name",
+            "po_number",
+            "deviation_type",
+            "deviation_details",
+            "recommended_action"
+          ]
+        },
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "b. If the supply is intra-state, CGST and SGST must each be present and equal.",
+      "extracted_at": "2026-05-09T15:39:45.633608",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-TAX-006",
+      "category": "TAX_COMPLIANCE",
+      "source_clause": "Section 4.3(c)",
+      "section_id": "4.3",
+      "sub_clause": "c",
+      "description": "Flag invoice when inter-state supply does not have IGST or has non-zero CGST/SGST",
+      "condition": {
+        "operator": "AND",
+        "field": null,
+        "op": null,
+        "value": null,
+        "operands": [
+          {
+            "operator": "LEAF",
+            "field": "supply_type",
+            "op": "==",
+            "value": "inter_state",
+            "operands": [],
+            "description": "Supply type is inter-state"
+          },
+          {
+            "operator": "OR",
+            "field": null,
+            "op": null,
+            "value": null,
+            "operands": [
+              {
+                "operator": "LEAF",
+                "field": "total_igst",
+                "op": "==",
+                "value": 0,
+                "operands": [],
+                "description": "IGST amount is zero"
+              },
+              {
+                "operator": "LEAF",
+                "field": "total_cgst",
+                "op": "!=",
+                "value": 0,
+                "operands": [],
+                "description": "CGST amount is non-zero"
+              },
+              {
+                "operator": "LEAF",
+                "field": "total_sgst",
+                "op": "!=",
+                "value": 0,
+                "operands": [],
+                "description": "SGST amount is non-zero"
+              }
+            ],
+            "description": "IGST missing or CGST/SGST not zero"
+          }
+        ],
+        "description": "Inter-state supply with missing IGST or non-zero CGST/SGST"
+      },
+      "action_config": {
+        "action": "FLAG",
+        "requires_justification": false,
+        "flag_code": "IGST_CGST_SGST_COMPLIANCE",
+        "flag_message": "For inter-state supply, IGST must be present and CGST/SGST must be zero.",
+        "notification": {
+          "type": "email",
+          "recipients": [
+            "finance_controller"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_name",
+            "supply_type",
+            "total_igst",
+            "total_cgst",
+            "total_sgst"
+          ]
+        },
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "c. If the supply is inter-state, IGST must be present and CGST/SGST must be zero.",
+      "extracted_at": "2026-05-09T15:39:58.355310",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-TAX-007",
+      "category": "TAX_COMPLIANCE",
+      "source_clause": "Section 4.3(d)",
+      "section_id": "4.3",
+      "sub_clause": "d",
+      "description": "Flag invoice for tax calculation error when any tax component field is missing or null",
+      "condition": {
+        "operator": "OR",
+        "field": null,
+        "op": null,
+        "value": null,
+        "operands": [
+          {
+            "operator": "LEAF",
+            "field": "total_cgst",
+            "op": "is_null",
+            "value": null,
+            "operands": [],
+            "description": "total_cgst is null"
+          },
+          {
+            "operator": "LEAF",
+            "field": "total_sgst",
+            "op": "is_null",
+            "value": null,
+            "operands": [],
+            "description": "total_sgst is null"
+          },
+          {
+            "operator": "LEAF",
+            "field": "total_igst",
+            "op": "is_null",
+            "value": null,
+            "operands": [],
+            "description": "total_igst is null"
+          },
+          {
+            "operator": "LEAF",
+            "field": "total_tax",
+            "op": "is_null",
+            "value": null,
+            "operands": [],
+            "description": "total_tax is null"
+          },
+          {
+            "operator": "LEAF",
+            "field": "total_taxable_amount",
+            "op": "is_null",
+            "value": null,
+            "operands": [],
+            "description": "total_taxable_amount is null"
+          },
+          {
+            "operator": "LEAF",
+            "field": "grand_total",
+            "op": "is_null",
+            "value": null,
+            "operands": [],
+            "description": "grand_total is null"
+          }
+        ],
+        "description": "One or more tax component fields are missing or null"
+      },
+      "action_config": {
+        "action": "FLAG",
+        "requires_justification": false,
+        "flag_code": "TAX_CALC_ERROR",
+        "flag_message": "Tax Calculation Error",
+        "notification": null,
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 0.6,
+      "low_confidence_reason": "Clause refers to generic tax component mismatches without specifying exact fields or calculations, so condition is approximated by checking for missing tax fields",
+      "raw_clause_text": "d. If tax components do not match the above rules, the invoice is flagged \"Tax Calculation Error.\"",
+      "extracted_at": "2026-05-09T15:40:11.139732",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-TAX-008",
+      "category": "TAX_COMPLIANCE",
+      "source_clause": "Section 4.4",
+      "section_id": "4.4",
+      "sub_clause": null,
+      "description": "Flag invoice when Place of Supply state code does not match buyer GSTIN state code",
+      "condition": {
+        "operator": "LEAF",
+        "field": "place_of_supply_state_code",
+        "op": "!=",
+        "value": "buyer_gstin_state_code",
+        "operands": [],
+        "description": "Place of Supply state code does not match buyer GSTIN state code"
+      },
+      "action_config": {
+        "action": "FLAG",
+        "requires_justification": false,
+        "flag_code": "PLACE_SUPPLY_MISMATCH",
+        "flag_message": "Place of Supply Mismatch.",
+        "notification": null,
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "4.4 Place of Supply must match the state code in the buyer's GSTIN. If mismatched, flag \"Place of Supply Mismatch.\"",
+      "extracted_at": "2026-05-09T15:40:20.178724",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-APR-001",
+      "category": "APPROVAL_MATRIX",
+      "source_clause": "Section 5.1",
+      "section_id": "5.1",
+      "sub_clause": null,
+      "description": "Auto-approve invoices up to INR 100,000 when all prior validations pass",
+      "condition": {
+        "operator": "LEAF",
+        "field": "invoice_total",
+        "op": "<=",
+        "value": 100000,
+        "operands": [],
+        "description": "Invoice total is less than or equal to 100,000 INR"
+      },
+      "action_config": {
+        "action": "AUTO_APPROVE",
+        "requires_justification": false,
+        "flag_code": null,
+        "flag_message": null,
+        "notification": null,
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [
+        "AP-APR-005"
+      ],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "5.1 Invoices up to INR 1,00,000: Auto-approved if all validations in Sections 1\u20134 pass.",
+      "extracted_at": "2026-05-09T15:40:37.565934",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-APR-002",
+      "category": "APPROVAL_MATRIX",
+      "source_clause": "Section 5.2",
+      "section_id": "5.2",
+      "sub_clause": null,
+      "description": "Require Department Head approval for invoices between INR 100,001 and INR 1,000,000",
+      "condition": {
+        "operator": "AND",
+        "field": null,
+        "op": null,
+        "value": null,
+        "operands": [
+          {
+            "operator": "LEAF",
+            "field": "invoice_total",
+            "op": ">=",
+            "value": 100001,
+            "operands": [],
+            "description": "Invoice total is at least INR 100,001"
+          },
+          {
+            "operator": "LEAF",
+            "field": "invoice_total",
+            "op": "<=",
+            "value": 1000000,
+            "operands": [],
+            "description": "Invoice total is at most INR 1,000,000"
+          }
+        ],
+        "description": "Invoice total between INR 100,001 and INR 1,000,000 inclusive"
+      },
+      "action_config": {
+        "action": "ROUTE_TO_DEPT_HEAD",
+        "requires_justification": false,
+        "flag_code": null,
+        "flag_message": null,
+        "notification": null,
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "5.2 Invoices between INR 1,00,001 and INR 10,00,000: Require approval from the Department Head.",
+      "extracted_at": "2026-05-09T15:40:43.264802",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-APR-003",
+      "category": "APPROVAL_MATRIX",
+      "source_clause": "Section 5.3",
+      "section_id": "5.3",
+      "sub_clause": null,
+      "description": "Require Finance Controller approval for invoices between INR 1,000,001 and INR 5,000,000",
+      "condition": {
+        "operator": "AND",
+        "field": null,
+        "op": null,
+        "value": null,
+        "operands": [
+          {
+            "operator": "LEAF",
+            "field": "invoice_total",
+            "op": ">=",
+            "value": 1000001,
+            "operands": [],
+            "description": "Invoice total is greater than or equal to INR 1,000,001"
+          },
+          {
+            "operator": "LEAF",
+            "field": "invoice_total",
+            "op": "<=",
+            "value": 5000000,
+            "operands": [],
+            "description": "Invoice total is less than or equal to INR 5,000,000"
+          }
+        ],
+        "description": "Invoice total between INR 1,000,001 and INR 5,000,000"
+      },
+      "action_config": {
+        "action": "ROUTE_TO_DEPT_HEAD",
+        "requires_justification": false,
+        "flag_code": null,
+        "flag_message": null,
+        "notification": {
+          "type": "email",
+          "recipients": [
+            "finance_controller"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_name",
+            "po_number",
+            "deviation_type",
+            "deviation_details",
+            "recommended_action"
+          ]
+        },
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "5.3 Invoices between INR 10,00,001 and INR 50,00,000: Require approval from the Finance Controller.",
+      "extracted_at": "2026-05-09T15:40:52.994855",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-APR-004",
+      "category": "APPROVAL_MATRIX",
+      "source_clause": "Section 5.4",
+      "section_id": "5.4",
+      "sub_clause": null,
+      "description": "Require CFO approval for invoices exceeding INR 5,000,000",
+      "condition": {
+        "operator": "LEAF",
+        "field": "invoice_total",
+        "op": ">",
+        "value": 5000000,
+        "operands": [],
+        "description": "Invoice total exceeds INR 5,000,000"
+      },
+      "action_config": {
+        "action": "ESCALATE_TO_CFO",
+        "requires_justification": false,
+        "flag_code": null,
+        "flag_message": null,
+        "notification": {
+          "type": "email",
+          "recipients": [
+            "cfo"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_name",
+            "po_number",
+            "deviation_type",
+            "deviation_details",
+            "recommended_action"
+          ]
+        },
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [
+        "Requires additional audit trail documentation per Section 6"
+      ],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "5.4 Invoices above INR 50,00,000: Require approval from the CFO. Subject to additional audit trail documentation per Section 6.",
+      "extracted_at": "2026-05-09T15:40:57.466568",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-APR-005",
+      "category": "APPROVAL_MATRIX",
+      "source_clause": "Section 5.5",
+      "section_id": "5.5",
+      "sub_clause": null,
+      "description": "Require Department Head approval for any invoice when vendor is on watch list",
+      "condition": {
+        "operator": "LEAF",
+        "field": "vendor_on_watchlist",
+        "op": "==",
+        "value": true,
+        "operands": [],
+        "description": "Vendor is flagged on the watch list"
+      },
+      "action_config": {
+        "action": "ROUTE_TO_DEPT_HEAD",
+        "requires_justification": false,
+        "flag_code": null,
+        "flag_message": null,
+        "notification": {
+          "type": "email",
+          "recipients": [
+            "dept_head"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_name",
+            "po_number",
+            "deviation_type",
+            "deviation_details",
+            "recommended_action"
+          ]
+        },
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [
+        "Standard approval matrix as defined in Section 5.1 does not apply when vendor_on_watchlist is true"
+      ],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "5.5 Exception to Section 5.1: If the vendor is on the \"Watch List\" (compliance or payment history issues), all invoices regardless of amount require Department Head approval.",
+      "extracted_at": "2026-05-09T15:41:07.363186",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-DEV-001",
+      "category": "DEVIATION_NOTIFICATIONS",
+      "source_clause": "Section 6.1",
+      "section_id": "6.1",
+      "sub_clause": null,
+      "description": "Send email notification to stakeholder within 15 minutes when any deviation is detected during three-way match",
+      "condition": {
+        "operator": "LEAF",
+        "field": "deviation_pct",
+        "op": ">",
+        "value": 0,
+        "operands": [],
+        "description": "Any deviation detected (deviation percentage greater than 0)"
+      },
+      "action_config": {
+        "action": "SEND_NOTIFICATION",
+        "requires_justification": false,
+        "flag_code": null,
+        "flag_message": null,
+        "notification": {
+          "type": "email",
+          "recipients": [
+            "ap_clerk"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_name",
+            "po_number",
+            "deviation_type",
+            "deviation_details",
+            "recommended_action"
+          ]
+        },
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 0.9,
+      "low_confidence_reason": null,
+      "raw_clause_text": "6.1 Any deviation detected during the three-way match (Sections 2\u20133) must trigger an email notification to the relevant stakeholder within 15 minutes of detection.",
+      "extracted_at": "2026-05-09T15:41:11.637111",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-DEV-002",
+      "category": "DEVIATION_NOTIFICATIONS",
+      "source_clause": "Section 6.2",
+      "section_id": "6.2",
+      "sub_clause": null,
+      "description": "Send email notification with required fields when any invoice deviation is detected",
+      "condition": {
+        "operator": "LEAF",
+        "field": "deviation_pct",
+        "op": "!=",
+        "value": 0,
+        "operands": [],
+        "description": "Any deviation (amount, quantity, or rate) detected on the invoice"
+      },
+      "action_config": {
+        "action": "SEND_NOTIFICATION",
+        "requires_justification": false,
+        "flag_code": null,
+        "flag_message": null,
+        "notification": {
+          "type": "email",
+          "recipients": [
+            "ap_clerk",
+            "dept_head",
+            "finance_controller"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_name",
+            "po_number",
+            "deviation_type",
+            "deviation_details",
+            "recommended_action"
+          ]
+        },
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 0.85,
+      "low_confidence_reason": "Condition uses deviation_pct as a proxy for any deviation type, which may not capture all mismatch scenarios",
+      "raw_clause_text": "6.2 Email notification must include: Invoice Number, Vendor Name, PO Number, Deviation Type (Amount Mismatch / Quantity Mismatch / Rate Mismatch / Missing GRN), Deviation Details (expected vs actual values), and Recommended Action.",
+      "extracted_at": "2026-05-09T15:41:15.551479",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-DEV-003",
+      "category": "DEVIATION_NOTIFICATIONS",
+      "source_clause": "Section 6.3",
+      "section_id": "6.3",
+      "sub_clause": null,
+      "description": "Escalate to next level approver when a deviation remains unresolved for 48 hours",
+      "condition": {
+        "operator": "LEAF",
+        "field": "processing_date",
+        "op": ">=",
+        "value": 48,
+        "operands": [],
+        "description": "Deviation unresolved for 48 hours based on processing date"
+      },
+      "action_config": {
+        "action": "SEND_NOTIFICATION",
+        "requires_justification": false,
+        "flag_code": null,
+        "flag_message": null,
+        "notification": {
+          "type": "email",
+          "recipients": [
+            "dept_head"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_name",
+            "po_number",
+            "deviation_type",
+            "deviation_details",
+            "recommended_action"
+          ]
+        },
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [
+        "Reference to Section 5 for definition of next level approver"
+      ],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 0.6,
+      "low_confidence_reason": "Field for deviation resolution time not explicitly defined in schema; using processing_date as proxy",
+      "raw_clause_text": "6.3 If a deviation is not resolved within 48 hours, an automatic escalation email must be sent to the next level approver as defined in Section 5.",
+      "extracted_at": "2026-05-09T15:41:23.311980",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-DEV-004",
+      "category": "DEVIATION_NOTIFICATIONS",
+      "source_clause": "Section 6.4",
+      "section_id": "6.4",
+      "sub_clause": null,
+      "description": "Send immediate email to Finance Controller and Internal Audit when amount variance exceeds 10%",
+      "condition": {
+        "operator": "LEAF",
+        "field": "deviation_pct",
+        "op": ">",
+        "value": 10,
+        "operands": [],
+        "description": "Invoice amount variance greater than 10%"
+      },
+      "action_config": {
+        "action": "SEND_NOTIFICATION",
+        "requires_justification": false,
+        "flag_code": null,
+        "flag_message": null,
+        "notification": {
+          "type": "email",
+          "recipients": [
+            "finance_controller",
+            "internal_audit"
+          ],
+          "within_minutes": 15,
+          "include_fields": [
+            "invoice_number",
+            "vendor_name",
+            "po_number",
+            "deviation_type",
+            "deviation_details",
+            "recommended_action"
+          ]
+        },
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [
+        "Compliance failures referenced in Section 4 are handled as separate notifications"
+      ],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 0.9,
+      "low_confidence_reason": null,
+      "raw_clause_text": "6.4 Critical deviations (amount variance > 10% or compliance failures from Section 4) must trigger an immediate email to the Finance Controller and the Internal Audit team simultaneously.",
+      "extracted_at": "2026-05-09T15:41:28.357105",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-QR-001",
+      "category": "QR_DIGITAL_VALIDATION",
+      "source_clause": "Section 7.1",
+      "section_id": "7.1",
+      "sub_clause": null,
+      "description": "Hold invoice when total exceeds INR 10,00,000 and QR code is missing",
+      "condition": {
+        "operator": "AND",
+        "field": null,
+        "op": null,
+        "value": null,
+        "operands": [
+          {
+            "operator": "LEAF",
+            "field": "invoice_total",
+            "op": ">",
+            "value": 1000000,
+            "operands": [],
+            "description": "Invoice total exceeds INR 10,00,000"
+          },
+          {
+            "operator": "LEAF",
+            "field": "qr_code_present",
+            "op": "==",
+            "value": false,
+            "operands": [],
+            "description": "QR code is not present on the invoice"
+          }
+        ],
+        "description": "Invoice total > 1,000,000 and QR code missing"
+      },
+      "action_config": {
+        "action": "HOLD",
+        "requires_justification": false,
+        "flag_code": "QR_MISSING_HIGH_VALUE",
+        "flag_message": "QR code missing for invoice > INR 10,00,000 \u2014 E-Invoice Compliance Required.",
+        "notification": null,
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "7.1 For invoices above INR 10,00,000, a valid QR code must be present on the invoice as per GST e-invoicing norms. If the QR code is missing, the invoice is held with status \"QR Code Missing \u2014 E-Invoice Compliance Required.\"",
+      "extracted_at": "2026-05-09T15:41:33.626461",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-QR-002",
+      "category": "QR_DIGITAL_VALIDATION",
+      "source_clause": "Section 7.2",
+      "section_id": "7.2",
+      "sub_clause": null,
+      "description": "Flag invoice when QR code present and QR invoice number or vendor GSTIN does not match invoice fields",
+      "condition": {
+        "operator": "AND",
+        "field": null,
+        "op": null,
+        "value": null,
+        "operands": [
+          {
+            "operator": "LEAF",
+            "field": "qr_code_present",
+            "op": "==",
+            "value": true,
+            "operands": [],
+            "description": "QR code is present"
+          },
+          {
+            "operator": "OR",
+            "field": null,
+            "op": null,
+            "value": null,
+            "operands": [
+              {
+                "operator": "LEAF",
+                "field": "qr_invoice_number",
+                "op": "!=",
+                "value": "invoice_number",
+                "operands": [],
+                "description": "QR invoice number does not match invoice number"
+              },
+              {
+                "operator": "LEAF",
+                "field": "qr_vendor_gstin",
+                "op": "!=",
+                "value": "vendor_gstin",
+                "operands": [],
+                "description": "QR vendor GSTIN does not match vendor GSTIN"
+              }
+            ],
+            "description": "Either QR invoice number or vendor GSTIN mismatch"
+          }
+        ],
+        "description": "QR code present and mismatch in invoice number or vendor GSTIN"
+      },
+      "action_config": {
+        "action": "FLAG",
+        "requires_justification": false,
+        "flag_code": "QR_VALIDATION_FAILED",
+        "flag_message": "QR Validation Failed",
+        "notification": null,
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "7.2 If a QR code is present, the Invoice Number and Vendor GSTIN extracted from the QR code must match the corresponding fields on the invoice face. Any mismatch results in a \"QR Validation Failed\" flag.",
+      "extracted_at": "2026-05-09T15:41:40.606093",
+      "_policy": "ap_policy"
+    },
+    {
+      "rule_id": "AP-QR-003",
+      "category": "QR_DIGITAL_VALIDATION",
+      "source_clause": "Section 7.3",
+      "section_id": "7.3",
+      "sub_clause": null,
+      "description": "Flag invoice for manual review when digital signature is present but invalid",
+      "condition": {
+        "operator": "AND",
+        "field": null,
+        "op": null,
+        "value": null,
+        "operands": [
+          {
+            "operator": "LEAF",
+            "field": "digital_signature_present",
+            "op": "==",
+            "value": true,
+            "operands": [],
+            "description": "Digital signature is present"
+          },
+          {
+            "operator": "LEAF",
+            "field": "digital_signature_valid",
+            "op": "==",
+            "value": false,
+            "operands": [],
+            "description": "Digital signature is invalid"
+          }
+        ],
+        "description": "Digital signature present and invalid"
+      },
+      "action_config": {
+        "action": "REQUEST_MANUAL_REVIEW",
+        "requires_justification": false,
+        "flag_code": "SIGNATURE_VERIFICATION_FAILED",
+        "flag_message": "Digital signature verification failed.",
+        "notification": null,
+        "next_action_if_unresolved_hours": null,
+        "escalate_to": null
+      },
+      "exceptions": [],
+      "related_rules": [],
+      "priority": 100,
+      "confidence": 1.0,
+      "low_confidence_reason": null,
+      "raw_clause_text": "7.3 Digital signature is recommended but not mandatory. If present and invalid, flag \"Signature Verification Failed\" for manual review.",
+      "extracted_at": "2026-05-09T15:41:45.515271",
+      "_policy": "ap_policy"
+    }
+  ],
+  "conflicts": [
+    {
+      "conflict_id": "CONF-ACTOR-AP-INV-003-AP-APR-004",
+      "rule_ids": [
+        "AP-INV-003",
+        "AP-APR-004"
+      ],
+      "conflict_type": "CONTRADICTORY_ACTORS",
+      "description": "Rules AP-INV-003 (Section 1.3) and AP-APR-004 (Section 5.4) can both fire for the same invoice but route to different approvers: ROUTE_TO_DEPT_HEAD vs ESCALATE_TO_CFO. Shared condition fields: invoice_total",
+      "severity": "MEDIUM",
+      "affected_field": "invoice_total",
+      "overlap_range": null,
+      "suggested_resolution": "Define explicit precedence: which rule takes priority when both conditions are met? Typically the stricter action (higher approver level) should win. Consider adding a combined condition that covers this scenario explicitly.",
+      "auto_resolvable": false,
+      "_policy": "ap_policy"
+    }
+  ],
+  "meta": {
+    "ap_policy": {
+      "extracted_at": "2026-05-09T15:41:47.519645",
+      "rule_count": 39
+    }
+  }
+}

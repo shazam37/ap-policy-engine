@@ -1,0 +1,174 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# pyenv
+.python-version
+
+# Environment variables
+.env
+.env.*
+*.env
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# VS Code
+.vscode/
+
+# PyCharm / IntelliJ
+.idea/
+*.iml
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Ruff
+.ruff_cache/
+
+# Pyre
+.pyre/
+
+# pytype
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# Logs
+*.log
+logs/
+
+# SQLite databases
+*.sqlite3
+db.sqlite3
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# FastAPI / Uvicorn
+uvicorn*.log
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Docker
+docker-compose.override.yml
+
+# Build artifacts
+*.apk
+*.aab
+*.whl
+
+# Data files (optional - uncomment if needed)
+# data/
+# datasets/
+
+# ML Models (optional - uncomment if needed)
+# *.pt
+# *.pth
+# *.h5
+# *.onnx
+# *.ckpt
+
+# JVM / memory dumps
+*.hprof
+*.dump
+*.prof
+
+# macOS
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+
+# Windows
+Desktop.ini
+$RECYCLE.BIN/
+
+# Secrets / credentials
+secrets.json
+credentials.json
+*.pem
+*.key
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# Node.js (if frontend exists)
+node_modules/
+
+# LangChain / LangGraph temp
+.langchain.db
+
+# MCP / Claude Desktop logs
+*.mcp.log
+
+submission_docs/

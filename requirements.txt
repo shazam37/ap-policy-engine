@@ -1,0 +1,12 @@
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
+pydantic-settings==2.6.1
+groq==0.13.0
+apscheduler==3.10.4
+networkx==3.4.2
+pypdf==5.1.0
+pytest==8.3.4
+pytest-asyncio==0.24.0
+httpx==0.28.1
+python-multipart==0.0.18
