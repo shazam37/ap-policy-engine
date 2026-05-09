@@ -11,7 +11,7 @@ flowchart TD
     A([📄 Policy Document\nPDF / Markdown / Text]) --> B
     B[🔍 Document Parser\nSection & clause segmentation] --> C
     C[✂️ Semantic Chunker\nRule candidate boundaries] --> D
-    D[🤖 LLM Rule Extractor\nGroq LLaMA-3 · Structured JSON] --> E
+    D[🤖 LLM Rule Extractor\nGroq GPT-OSS-120B · Structured JSON] --> E
     E[✅ Pydantic Schema Validator\nType enforcement · Traceability] --> F
     F[⚠️ Conflict Detection Engine\nNetworkX graph · Overlap analysis] --> G
     G[⚙️ Rule Execution Engine\nDeterministic evaluation · Audit trail] --> H
@@ -45,7 +45,7 @@ flowchart TD
 | Layer | Technology |
 |---|---|
 | API | FastAPI + Pydantic v2 |
-| LLM | Groq API (LLaMA-3.3-70b-versatile) |
+| LLM | Groq API (GPT-OSS-120B) |
 | Conflict analysis | NetworkX directed graph |
 | Scheduling | APScheduler (background) |
 | Persistence | JSON rules store (swap for PostgreSQL in prod) |
